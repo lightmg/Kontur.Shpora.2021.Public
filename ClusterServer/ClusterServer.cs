@@ -26,7 +26,7 @@ namespace Cluster
                 {
                     Prefixes =
                     {
-                        $"http://+:{ServerOptions.Port}/{ServerOptions.MethodName}/"
+                        $"http://127.0.0.1:{ServerOptions.Port}/{ServerOptions.MethodName}/"
                     }
                 };
 
