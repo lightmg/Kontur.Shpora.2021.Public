@@ -9,6 +9,7 @@ namespace Cluster
         public string MethodName { get; set; }
         public int MethodDuration { get; set; }
         public bool Async { get; set; }
+        public int Status { get; set; }
 
         public static bool TryGetArguments(string[] args, out ServerOptions parsedOptions)
         {
@@ -29,6 +30,10 @@ namespace Cluster
             argumentsParser.Setup(a => a.Async)
                 .As(CaseType.CaseInsensitive, "a", "async")
                 .SetDefault(false);
+
+            argumentsParser.Setup(a => a.Status)
+                .As(CaseType.CaseInsensitive, "s", "status")
+                .SetDefault(200);
 
             argumentsParser.SetupHelp("?", "h", "help")
                 .Callback(text => Console.WriteLine(text));
