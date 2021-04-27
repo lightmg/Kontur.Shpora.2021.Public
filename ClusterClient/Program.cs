@@ -6,6 +6,9 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using ClusterClient.Clients;
+using ClusterClient.Clients.Models;
+using ClusterClient.Clients.Models.Builders;
+using ClusterClient.Clients.Sending;
 using Fclp;
 using log4net;
 using log4net.Config;
@@ -24,9 +27,12 @@ namespace ClusterClient
 
             try
             {
-                var clients = new ClusterClientBase[]
+                var clients = new Clients.IClusterClient[]
                               {
-                                  new RandomClusterClient(replicaAddresses),
+                                  new RandomClusterClient(
+                                      new ClusterRequestSender().WithRequestTimeLogging(),
+                                      new DefaultClusterRequestBuilder(), 
+                                      replicaAddresses.Select(Replica.FromUrl)),
                               };
 
                 var queries = new[]
