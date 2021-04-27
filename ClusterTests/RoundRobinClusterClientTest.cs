@@ -9,7 +9,7 @@ namespace ClusterTests
 {
 	public class RoundRobinClusterClientTest : ClusterTest
 	{
-		protected override ClusterClientBase CreateClient(string[] replicaAddresses)
+		protected override IClusterClient CreateClient(string[] replicaAddresses)
 			=> new RoundRobinClusterClient(replicaAddresses);
 
 		[Test]

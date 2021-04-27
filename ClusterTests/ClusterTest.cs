@@ -74,7 +74,7 @@ namespace ClusterTests
 			action.Should().Throw<Exception>();
 		}
 
-		protected abstract ClusterClientBase CreateClient(string[] replicaAddresses);
+		protected abstract IClusterClient CreateClient(string[] replicaAddresses);
 
 		[SetUp]
 		public void SetUp() => clusterServers = new List<ClusterServer>();
@@ -117,7 +117,7 @@ namespace ClusterTests
 					var timer = Stopwatch.StartNew();
 					try
 					{
-						var clientResult = await client.ProcessRequestAsync(query, TimeSpan.FromMilliseconds(timeout));
+						var clientResult = await client.SendRequestAsync(query, TimeSpan.FromMilliseconds(timeout));
 						timer.Stop();
 
 						clientResult.Should().Be(Encoding.UTF8.GetString(ClusterHelpers.GetBase64HashBytes(query)));

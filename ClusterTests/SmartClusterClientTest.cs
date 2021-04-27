@@ -2,6 +2,9 @@
 using System.Diagnostics;
 using System.Linq;
 using ClusterClient.Clients;
+using ClusterClient.Clients.Models;
+using ClusterClient.Clients.Models.Builders;
+using ClusterClient.Clients.Sending;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -9,8 +12,12 @@ namespace ClusterTests
 {
 	public class SmartClusterClientTest : ClusterTest
 	{
-		protected override ClusterClientBase CreateClient(string[] replicaAddresses)
-			=> new SmartClusterClient(replicaAddresses);
+		protected override IClusterClient CreateClient(string[] replicaAddresses) =>
+			new SmartClusterClient(
+				new DefaultClusterRequestBuilder(),
+				new ClusterRequestSender().WithRequestTimeLogging(),
+				replicaAddresses.Select(Replica.FromUrl)
+			);
 
 		[Test]
 		public void ShouldReturnSuccessWhenLastReplicaIsGoodAndOthersAreSlow()

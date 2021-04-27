@@ -1,5 +1,8 @@
 ﻿using System.Linq;
 using ClusterClient.Clients;
+using ClusterClient.Clients.Models;
+using ClusterClient.Clients.Models.Builders;
+using ClusterClient.Clients.Sending;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -7,8 +10,12 @@ namespace ClusterTests
 {
 	public class RandomClusterClientTest : ClusterTest
 	{
-		protected override ClusterClientBase CreateClient(string[] replicaAddresses)
-			=> new RandomClusterClient(replicaAddresses);
+		protected override IClusterClient CreateClient(string[] replicaAddresses)
+			=> new RandomClusterClient(
+				new ClusterRequestSender().WithRequestTimeLogging(), 
+				new DefaultClusterRequestBuilder(), 
+				replicaAddresses.Select(Replica.FromUrl)
+			);
 
 		[Test]
 		public void ClientShouldReturnSuccessIn50Percent()

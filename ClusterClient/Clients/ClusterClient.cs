@@ -5,6 +5,6 @@ namespace ClusterClient.Clients
 {
     public interface IClusterClient
     {
-        Task<string> ProcessRequestAsync(string query, TimeSpan timeout);
+        Task<string> SendRequestAsync(string query, TimeSpan timeout);
     }
 }
