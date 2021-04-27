@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using log4net;
@@ -26,15 +22,15 @@ namespace Cluster
                 {
                     Prefixes =
                     {
-                        $"http://+:{ServerOptions.Port}/{ServerOptions.MethodName}/"
+                        $"http://127.0.0.1:{ServerOptions.Port}/{ServerOptions.MethodName}/"
                     }
                 };
 
                 log.InfoFormat($"Server is starting listening prefixes: {string.Join(";", httpListener.Prefixes)}");
                 if(ServerOptions.Async)
-                    httpListener.StartProcessingRequestsAsync(CreateAsyncCallback(ServerOptions.MethodDuration));
+                    httpListener.StartProcessingRequestsAsync(CreateAsyncCallback(ServerOptions.MethodDuration, ServerOptions.Status));
                 else
-                    httpListener.StartProcessingRequestsSync(CreateSyncCallback(ServerOptions.MethodDuration));
+                    httpListener.StartProcessingRequestsSync(CreateSyncCallback(ServerOptions.MethodDuration, ServerOptions.Status));
             }
         }
 
@@ -42,14 +38,14 @@ namespace Cluster
         {
             if(Interlocked.CompareExchange(ref isRunning, NotRunning, Running) == Running)
             {
-				if (httpListener.IsListening)
-					httpListener.Stop();
+                if(httpListener.IsListening)
+                    httpListener.Stop();
             }
         }
 
         public ServerOptions ServerOptions { get; }
 
-        private Action<HttpListenerContext> CreateSyncCallback(int methodDuration)
+        private Action<HttpListenerContext> CreateSyncCallback(int methodDuration, int status = 200)
         {
             return context =>
             {
@@ -59,14 +55,15 @@ namespace Cluster
 
                 Thread.Sleep(methodDuration);
 
+                context.Response.StatusCode = status;
                 var encryptedBytes = ClusterHelpers.GetBase64HashBytes(query);
                 context.Response.OutputStream.Write(encryptedBytes, 0, encryptedBytes.Length);
 
-                log.InfoFormat($"Thread #{query} sent response for '{Thread.CurrentThread.ManagedThreadId}' for #{currentRequestId} at {DateTime.Now.TimeOfDay}");
+                log.InfoFormat($"Thread #{query} sent response {status} for '{Thread.CurrentThread.ManagedThreadId}' for #{currentRequestId} at {DateTime.Now.TimeOfDay}");
             };
         }
 
-        private Func<HttpListenerContext, Task> CreateAsyncCallback(int methodDuration)
+        private Func<HttpListenerContext, Task> CreateAsyncCallback(int methodDuration, int status = 200)
         {
             return async context =>
             {
@@ -77,10 +74,11 @@ namespace Cluster
                 await Task.Delay(methodDuration);
                 // Thread.Sleep(methodDuration);
 
+                context.Response.StatusCode = status;
                 var encryptedBytes = ClusterHelpers.GetBase64HashBytes(query);
                 await context.Response.OutputStream.WriteAsync(encryptedBytes, 0, encryptedBytes.Length);
 
-                log.InfoFormat($"Thread #{Thread.CurrentThread.ManagedThreadId} sent response for '{query}' #{currentRequestNum} at {DateTime.Now.TimeOfDay}");
+                log.InfoFormat($"Thread #{Thread.CurrentThread.ManagedThreadId} sent response {status} for '{query}' #{currentRequestNum} at {DateTime.Now.TimeOfDay}");
             };
         }
 
