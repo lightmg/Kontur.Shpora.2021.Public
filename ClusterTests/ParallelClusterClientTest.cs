@@ -2,6 +2,9 @@
 using System.Diagnostics;
 using System.Linq;
 using ClusterClient.Clients;
+using ClusterClient.Clients.Models;
+using ClusterClient.Clients.Models.Builders;
+using ClusterClient.Clients.Sending;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -9,8 +12,11 @@ namespace ClusterTests
 {
 	public class ParallelClusterClientTest : ClusterTest
 	{
-		protected override IClusterClient CreateClient(string[] replicaAddresses)
-			=> new ParallelClusterClient(replicaAddresses);
+		protected override IClusterClient CreateClient(string[] replicaAddresses) =>
+			new ParallelClusterClient(
+				new DefaultClusterRequestBuilder(),
+				new ClusterRequestSender().WithRequestTimeLogging(),
+				replicaAddresses.Select(Replica.FromUrl));
 
 		[Test]
 		public void ShouldReturnSuccessWhenLastReplicaIsGoodAndOthersAreSlow()
@@ -51,6 +57,7 @@ namespace ClusterTests
 
             var sw = Stopwatch.StartNew();
             ((Action)(() => ProcessRequests(Timeout))).Should().Throw<Exception>();
+            sw.Stop();
             sw.Elapsed.Should().BeCloseTo(TimeSpan.FromMilliseconds(Fast), Epsilon);
         }
     }

@@ -58,7 +58,7 @@ namespace ClusterTests
 			for(int i = 0; i < 3; i++)
 				CreateServer(Slow);
 
-			Action action = () => ProcessRequests(Timeout);
+			Action action = () => ProcessRequests(Timeout, 1);
 
 			action.Should().Throw<TimeoutException>();
 		}

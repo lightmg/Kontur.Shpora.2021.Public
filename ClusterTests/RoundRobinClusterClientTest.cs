@@ -2,6 +2,9 @@
 using System.Diagnostics;
 using System.Linq;
 using ClusterClient.Clients;
+using ClusterClient.Clients.Models;
+using ClusterClient.Clients.Models.Builders;
+using ClusterClient.Clients.Sending;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -9,8 +12,12 @@ namespace ClusterTests
 {
 	public class RoundRobinClusterClientTest : ClusterTest
 	{
-		protected override IClusterClient CreateClient(string[] replicaAddresses)
-			=> new RoundRobinClusterClient(replicaAddresses);
+		protected override IClusterClient CreateClient(string[] replicaAddresses) => 
+			new RoundRobinClusterClient(
+				new DefaultClusterRequestBuilder(),
+				new ClusterRequestSender().WithRequestTimeLogging(),
+				replicaAddresses.Select(Replica.FromUrl)
+			);
 
 		[Test]
 		public override void Client_should_return_success_when_timeout_is_close()
